@@ -1,0 +1,5 @@
+# xolg
+
+```
+vgo build && ./xolg
+```
