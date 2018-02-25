@@ -19,7 +19,7 @@ func constantXInstruction(name string, chunk *Chunk, offset int) int {
 	byte0 := int(chunk.code[offset+1])
 	byte1 := int(chunk.code[offset+2])
 	byte2 := int(chunk.code[offset+3])
-	constant := byte0 | (byte1 << 8) | (byte2 << 16)
+	constant := byte0<<0 | byte1<<8 | byte2<<16
 	fmt.Printf("%-16s %4d '", name, constant)
 	printValue(chunk.constants[constant])
 	fmt.Printf("'\n")

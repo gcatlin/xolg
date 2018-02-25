@@ -77,9 +77,9 @@ func (c *Chunk) writeConstant(v Value, line int) {
 		return
 	}
 	c.write(OpConstantX, line)
-	c.write(byte(constant&0xFF), line)
-	c.write(byte((constant>>8)&0xFF), line)
-	c.write(byte((constant>>16)&0xFF), line)
+	c.write(byte(constant>>0), line)
+	c.write(byte(constant>>8), line)
+	c.write(byte(constant>>16), line)
 }
 
 func main() {
