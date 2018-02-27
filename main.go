@@ -2,8 +2,10 @@ package main
 
 const HEX = "%02X"
 
+type Op byte
+
 const (
-	OpConstant byte = iota
+	OpConstant Op = iota
 	OpConstantX
 	OpReturn
 )
@@ -69,14 +71,18 @@ func (c *Chunk) write(b byte, line int) {
 func (c *Chunk) writeConstant(v Value, line int) {
 	constant := c.addConstant(v)
 	if len(c.constants) <= 0xFF {
-		c.write(OpConstant, line)
+		c.writeOp(OpConstant, line)
 		c.write(byte(constant), line)
 		return
 	}
-	c.write(OpConstantX, line)
+	c.writeOp(OpConstantX, line)
 	c.write(byte(constant>>0), line)
 	c.write(byte(constant>>8), line)
 	c.write(byte(constant>>16), line)
+}
+
+func (c *Chunk) writeOp(op Op, line int) {
+	c.write(byte(op), line)
 }
 
 func main() {
@@ -84,6 +90,6 @@ func main() {
 	c.writeConstant(1.2, 123)
 	c.writeConstant(3.4, 124)
 	c.writeConstant(5.6, 124)
-	c.write(OpReturn, 125)
+	c.writeOp(OpReturn, 125)
 	c.disassemble("test chunk")
 }
