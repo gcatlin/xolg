@@ -38,10 +38,8 @@ func (c *Chunk) addConstant(v Value) int {
 }
 
 func (c *Chunk) getLine(offset int) int {
-	var mid int
 	found := false
-	low := 0
-	high := len(c.lines) - 1
+	low, mid, high := 0, 0, len(c.lines)-1
 	for low <= high {
 		mid = (low + high) / 2
 		if offset < c.offsets[mid] {
@@ -70,7 +68,6 @@ func (c *Chunk) write(b byte, line int) {
 
 func (c *Chunk) writeConstant(v Value, line int) {
 	constant := c.addConstant(v)
-	// if len(c.constants) <= 1 {
 	if len(c.constants) <= 0xFF {
 		c.write(OpConstant, line)
 		c.write(byte(constant), line)
