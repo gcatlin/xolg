@@ -31,7 +31,7 @@ func simpleInstruction(name string, offset int) int {
 	return offset + 1
 }
 
-func unknownInstruction(instr byte, offset int) int {
+func unknownInstruction(instr Op, offset int) int {
 	fmt.Printf("Unknown opcode: %d\n", instr)
 	return offset + 1
 }
@@ -47,7 +47,7 @@ func (c *Chunk) disassemble(name string) {
 
 func (c *Chunk) disassembleInstruction(offset int) int {
 	line := c.getLine(offset)
-	instr := c.code[offset]
+	instr := Op(c.code[offset])
 	size := InstrSize[instr]
 
 	// Instruction bytes
