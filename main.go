@@ -150,25 +150,23 @@ func (vm *VM) readConstantX() Value {
 
 func (vm *VM) run() InterpretResult {
 	for {
-		fmt.Printf("          ")
-		for _, v := range vm.stack {
-			fmt.Printf("[ ")
-			printValue(v)
-			fmt.Printf(" ]")
+		// Print stack
+		if len(vm.stack) != 0 {
+			fmt.Printf("\t[ ")
+			for _, v := range vm.stack {
+				printValue(v)
+				fmt.Printf(", ")
+			}
+			fmt.Printf("]\n")
 		}
-		fmt.Printf("\n")
+
 		vm.chunk.disassembleInstruction(vm.ip)
 		instr := vm.next()
 		switch instr {
 		case OpConstant:
-			constant := vm.readConstant()
-			vm.push(constant)
-			printValue(constant)
-			fmt.Printf("\n")
+			vm.push(vm.readConstant())
 		case OpConstantX:
-			constant := vm.readConstantX()
-			printValue(constant)
-			fmt.Printf("\n")
+			vm.push(vm.readConstantX())
 		case OpAdd:
 			vm.push(vm.pop() + vm.pop())
 		case OpSub:
@@ -182,8 +180,9 @@ func (vm *VM) run() InterpretResult {
 		case OpNegate:
 			vm.push(-vm.pop())
 		case OpReturn:
+			fmt.Println()
 			printValue(vm.pop())
-			fmt.Printf("\n")
+			fmt.Println()
 			return InterpretOk
 		}
 	}

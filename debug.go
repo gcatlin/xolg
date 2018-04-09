@@ -11,7 +11,7 @@ func constantInstruction(name string, chunk *Chunk, offset int) {
 	constant := byte0
 	fmt.Printf("%-16s %4d '", name, constant)
 	printValue(chunk.constants[constant])
-	fmt.Printf("'\n")
+	fmt.Printf("'")
 }
 
 func constantXInstruction(name string, chunk *Chunk, offset int) {
@@ -21,15 +21,15 @@ func constantXInstruction(name string, chunk *Chunk, offset int) {
 	constant := byte0<<0 | byte1<<8 | byte2<<16
 	fmt.Printf("%-16s %4d '", name, constant)
 	printValue(chunk.constants[constant])
-	fmt.Printf("'\n")
+	fmt.Printf("'")
 }
 
 func simpleInstruction(name string, offset int) {
-	fmt.Printf("%-16s\n", name)
+	fmt.Printf("%-16s      ", name)
 }
 
 func unknownInstruction(instr Op, offset int) {
-	fmt.Printf("Unknown opcode: %d\n", instr)
+	fmt.Printf("Unknown opcode: %d", instr)
 }
 
 func (c *Chunk) disassemble(name string) {
@@ -38,7 +38,9 @@ func (c *Chunk) disassemble(name string) {
 	fmt.Printf("------ -- -- -- -- -----  ----------------\n")
 	for i, max := 0, len(c.code); i < max; {
 		i = c.disassembleInstruction(i)
+		fmt.Println()
 	}
+	fmt.Println()
 }
 
 func (c *Chunk) disassembleInstruction(offset int) int {
@@ -85,5 +87,6 @@ func (c *Chunk) disassembleInstruction(offset int) int {
 	default:
 		unknownInstruction(instr, offset)
 	}
+
 	return offset + size
 }
