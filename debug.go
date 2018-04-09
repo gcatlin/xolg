@@ -6,16 +6,15 @@ func printValue(value Value) {
 	fmt.Printf("%g", value)
 }
 
-func constantInstruction(name string, chunk *Chunk, offset int) int {
+func constantInstruction(name string, chunk *Chunk, offset int) {
 	byte0 := int(chunk.code[offset+1])
 	constant := byte0
 	fmt.Printf("%-16s %4d '", name, constant)
 	printValue(chunk.constants[constant])
 	fmt.Printf("'\n")
-	return offset + 2
 }
 
-func constantXInstruction(name string, chunk *Chunk, offset int) int {
+func constantXInstruction(name string, chunk *Chunk, offset int) {
 	byte0 := int(chunk.code[offset+1])
 	byte1 := int(chunk.code[offset+2])
 	byte2 := int(chunk.code[offset+3])
@@ -23,17 +22,14 @@ func constantXInstruction(name string, chunk *Chunk, offset int) int {
 	fmt.Printf("%-16s %4d '", name, constant)
 	printValue(chunk.constants[constant])
 	fmt.Printf("'\n")
-	return offset + 4
 }
 
-func simpleInstruction(name string, offset int) int {
+func simpleInstruction(name string, offset int) {
 	fmt.Printf("%-16s\n", name)
-	return offset + 1
 }
 
-func unknownInstruction(instr Op, offset int) int {
+func unknownInstruction(instr Op, offset int) {
 	fmt.Printf("Unknown opcode: %d\n", instr)
-	return offset + 1
 }
 
 func (c *Chunk) disassemble(name string) {
@@ -49,11 +45,14 @@ func (c *Chunk) disassembleInstruction(offset int) int {
 	line := c.getLine(offset)
 	instr := Op(c.code[offset])
 	size := InstrSize[instr]
+	if size == 0 {
+		size = 1
+	}
 
 	// Instruction bytes
-	fmt.Printf("%06d ", offset)
+	fmt.Printf("%06X ", offset)
 	for i := 0; i < size; i++ {
-		fmt.Printf(HEX+" ", c.code[offset+i])
+		fmt.Printf("%02X ", c.code[offset+i])
 	}
 	for i := size; i < 4; i++ {
 		fmt.Printf("   ")
@@ -68,11 +67,21 @@ func (c *Chunk) disassembleInstruction(offset int) int {
 
 	switch instr {
 	case OpConstant:
-		constantInstruction("OP_CONSTANT", c, offset)
+		constantInstruction("OpConstant", c, offset)
 	case OpConstantX:
-		constantInstruction("OP_CONSTANT_X", c, offset)
+		constantXInstruction("OpConstantX", c, offset)
+	case OpAdd:
+		simpleInstruction("OpAdd", offset)
+	case OpSub:
+		simpleInstruction("OpSub", offset)
+	case OpMul:
+		simpleInstruction("OpMul", offset)
+	case OpDiv:
+		simpleInstruction("OpDiv", offset)
+	case OpNegate:
+		simpleInstruction("OpNegate", offset)
 	case OpReturn:
-		simpleInstruction("OP_RETURN", offset)
+		simpleInstruction("OpReturn", offset)
 	default:
 		unknownInstruction(instr, offset)
 	}

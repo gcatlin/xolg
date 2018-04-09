@@ -1,19 +1,32 @@
 package main
 
-const HEX = "%02X"
+import "fmt"
 
 type Op byte
 
 const (
 	OpConstant Op = iota
 	OpConstantX
+	OpAdd
+	OpSub
+	OpMul
+	OpDiv
+	OpNegate
 	OpReturn
+	__op_count__
 )
 
-var InstrSize = []int{
+type InterpretResult int
+
+const (
+	InterpretOk InterpretResult = iota
+	InterpretCompileError
+	InterpretRuntimeError
+)
+
+var InstrSize = [__op_count__]int{
 	OpConstant:  2,
 	OpConstantX: 4,
-	OpReturn:    1,
 }
 
 type Value float64
@@ -85,11 +98,107 @@ func (c *Chunk) writeOp(op Op, line int) {
 	c.write(byte(op), line)
 }
 
+type VM struct {
+	chunk *Chunk
+	ip    int // offset into Chunk
+	stack []Value
+}
+
+func NewVM() *VM {
+	return &VM{
+		stack: make([]Value, 0, 256),
+	}
+}
+
+func (vm *VM) resetStack() {
+	vm.stack = vm.stack[:0]
+}
+
+func (vm *VM) interpret(c *Chunk) InterpretResult {
+	vm.chunk = c
+	vm.ip = 0
+	return vm.run()
+}
+
+func (vm *VM) next() Op {
+	instr := Op(vm.chunk.code[vm.ip])
+	vm.ip++
+	return instr
+}
+
+func (vm *VM) push(v Value) {
+	vm.stack = append(vm.stack, v)
+}
+
+func (vm *VM) pop() Value {
+	v := vm.stack[len(vm.stack)-1]
+	vm.stack = vm.stack[:len(vm.stack)-1]
+	return v
+}
+
+func (vm *VM) readConstant() Value {
+	return vm.chunk.constants[vm.next()]
+}
+
+func (vm *VM) readConstantX() Value {
+	byte0 := int(vm.next())
+	byte1 := int(vm.next())
+	byte2 := int(vm.next())
+	constant := byte0<<0 | byte1<<8 | byte2<<16
+	return vm.chunk.constants[constant]
+}
+
+func (vm *VM) run() InterpretResult {
+	for {
+		fmt.Printf("          ")
+		for _, v := range vm.stack {
+			fmt.Printf("[ ")
+			printValue(v)
+			fmt.Printf(" ]")
+		}
+		fmt.Printf("\n")
+		vm.chunk.disassembleInstruction(vm.ip)
+		instr := vm.next()
+		switch instr {
+		case OpConstant:
+			constant := vm.readConstant()
+			vm.push(constant)
+			printValue(constant)
+			fmt.Printf("\n")
+		case OpConstantX:
+			constant := vm.readConstantX()
+			printValue(constant)
+			fmt.Printf("\n")
+		case OpAdd:
+			vm.push(vm.pop() + vm.pop())
+		case OpSub:
+			vm.push(-vm.pop() + vm.pop())
+		case OpMul:
+			vm.push(vm.pop() + vm.pop())
+		case OpDiv:
+			rhs := vm.pop()
+			lhs := vm.pop()
+			vm.push(lhs / rhs)
+		case OpNegate:
+			vm.push(-vm.pop())
+		case OpReturn:
+			printValue(vm.pop())
+			fmt.Printf("\n")
+			return InterpretOk
+		}
+	}
+}
+
 func main() {
+	vm := NewVM()
 	c := NewChunk()
 	c.writeConstant(1.2, 123)
-	c.writeConstant(3.4, 124)
-	c.writeConstant(5.6, 124)
-	c.writeOp(OpReturn, 125)
+	c.writeConstant(3.4, 123)
+	c.writeOp(OpAdd, 123)
+	c.writeConstant(5.6, 123)
+	c.writeOp(OpDiv, 123)
+	c.writeOp(OpNegate, 123)
+	c.writeOp(OpReturn, 123)
 	c.disassemble("test chunk")
+	vm.interpret(c)
 }
